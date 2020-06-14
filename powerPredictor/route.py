@@ -1,3 +1,4 @@
+import bcrypt
 from flask import request
 from powerPredictor import app
 from powerPredictor.models import User, PowerPlant
@@ -30,7 +31,8 @@ def signUp():
    if userName and userEmail and userPassword:
       user=User.query.filter_by(email=userEmail).first()
       if not user:
-         user=User(name=userName, email=userEmail, password=userPassword)
+         hashedPasswor = bcrypt.hashpw(userPassword.encode('utf-8'), bcrypt.gensalt())
+         user=User(name=userName, email=userEmail, password=hashedPasswor)
          statusCode=Operation.addEntryToDatabase(user)
          return Response.createResponseFromStatus(statusCode)
       return Response.createResponseFromStatus(409)
