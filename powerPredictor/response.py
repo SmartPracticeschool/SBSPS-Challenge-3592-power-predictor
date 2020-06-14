@@ -5,6 +5,9 @@ class Response:
     NAME='name'
     EMAIL='email'
     POWERPLANT='powerPlant'
+    LATITUDE='latitude'
+    LONGITUDE='longitude'
+    ID='id'
 
     def createResponseFromStatus(code):
         return {Response.STATUS: code}
@@ -22,4 +25,11 @@ class Response:
             database.append(userData)
         return {Response.DATABASE: database}
         
-            
+    def getDetalisOf(user):
+        powerPlants=user.powerPlants
+        powerPlantsData=[]
+        for powerPlant in powerPlants:
+            powerPlantDict = {Response.NAME: powerPlant.name, Response.LATITUDE: powerPlant.latutude, Response.LONGITUDE: powerPlant.longitude}
+            powerPlantsData.append(powerPlantDict)
+        return {Response.POWERPLANT: powerPlantsData, Response.ID: user.id}
+        

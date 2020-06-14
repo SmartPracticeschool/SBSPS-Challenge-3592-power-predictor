@@ -12,6 +12,7 @@ Response code:
 200 -> OK, Intended task completed
 404 -> NO data found
 503 -> Error in database, unable to enter data into table
+401 -> not authorised, Wrong password
 '''
 
 
@@ -45,4 +46,16 @@ def viewDatabase():
    if users:
       return Response.getDatabase(users)
    return Response.createResponseFromStatus(404)
-   
+
+@app.route('/login', methods=['PUT'])
+def Login():
+   userEmail = request.args.get('email')
+   userPassword = request.args.get('password')
+   if userEmail and userPassword:
+      user=User.query.filter_by(email=userEmail).first()
+      if user:
+         if bcrypt.checkpw(userPassword.encode('utf-8'), user.password):
+            return Response.getDetalisOf(user)
+         return Response.createResponseFromStatus(401)
+      return Response.createResponseFromStatus(404)
+   return Response.createResponseFromStatus(400)   
