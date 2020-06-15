@@ -4,6 +4,7 @@ from powerPredictor import app
 from powerPredictor.models import User, PowerPlant
 from powerPredictor.response import Response 
 from powerPredictor.databaseOperation import Operation
+from powerPredictor.otp import Otp, otpSender
 
 '''
 Response code:
@@ -12,9 +13,9 @@ Response code:
 200 -> OK, Intended task completed
 404 -> NO data found
 503 -> Error in database, unable to enter data into table
-401 -> not authorised, Wrong password
+401 -> not authorised, Wrong password/otp
+502 -> Unable to send mail, something wrong with mail id
 '''
-
 
 
 '''
@@ -40,12 +41,43 @@ def signUp():
    return Response.createResponseFromStatus(400)
 
 
+@app.route('/resendotp', methods=['POST'])
+def ResendOtp():
+   statusCode=otpSender.reSendCode()
+   return Response.createResponseFromStatus(statusCode)
+
+'''
+parameters:
+otp -> user entered otp
+'''
+@app.route('/checkotp', methods=['POST'])
+def CheckOtp():
+   otp = request.args.get('otp')
+   if otp:
+      otpResponse=otpSender.checkOTP(otp)
+      if otpResponse==404:
+         return Response.createResponseFromStatus(otpResponse)
+      elif otpResponse:
+         user=otpSender.user
+         statusCode=Operation.addEntryToDatabase(user)
+         otpSender.user=None
+         return Response.createResponseFromStatus(statusCode)
+      return Response.createResponseFromStatus(401)
+   return Response.createResponseFromStatus(400)
+
 @app.route('/database', methods=['GET'])
 def viewDatabase():
    users= User.query.all()
    if users:
       return Response.getDatabase(users)
    return Response.createResponseFromStatus(404)
+
+
+'''
+parameters:
+email -> email of the user
+password -> password of the user
+'''
 
 @app.route('/login', methods=['PUT'])
 def Login():
